@@ -1,20 +1,18 @@
-MODULE_big = quantile
-OBJS = src/quantile.o
+# the extensions name
+EXTENSION     = quantile
+DATA          = $(wildcard sql/*--*.sql)        # script files to install
+TESTS         = $(wildcard test/sql/*.sql)      # use test/sql/*.sql as testfile
 
-EXTENSION = quantile
-DATA = sql/quantile--1.1.5.sql sql/quantile--1.1.4--1.1.5.sql
-MODULES = quantile
+# find the sql and expected directories under test
+# load plpgsql into test db
+# load quantile extension into test db
+REGRESS_OPTS  = --inputdir=test --load-extension=quantile --load-language=plpgsql
+REGRESS       = $(patsubst test/sql/%.sql,%,$(TESTS))
+OBJS          = $(patsubst %.c,%.o,$(wildcard src/*.c)) # object files
+# final shared library to be build from multiple source files (OBJS)
+MODULE_big    = $(EXTENSION)
 
-CFLAGS=`pg_config --includedir-server`
-
-TESTS        = $(wildcard test/sql/*.sql)
-REGRESS      = $(patsubst test/sql/%.sql,%,$(TESTS))
-REGRESS_OPTS = --inputdir=test
-
+# postgres build stuff
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
-
-quantile.so: src/quantile.o
-
-src/quantile.o: src/quantile.c
